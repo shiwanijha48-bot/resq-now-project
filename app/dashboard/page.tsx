@@ -47,10 +47,10 @@ export default function DashboardPage() {
 
       // Resources I've offered
       const { data: myOffers } = await supabase
-        .from("resource_offers")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
+  .from("offers")
+  .select("*")
+  .eq("user_id", userId)
+  .order("created_at", { ascending: false });
 
       setMyRequests(myReqs || []);
       setAcceptedRequests(accepted || []);

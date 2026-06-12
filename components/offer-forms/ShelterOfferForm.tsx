@@ -11,6 +11,9 @@ export default function ShelterOfferForm() {
   const [address, setAddress] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [isSOS, setIsSOS] = useState(false);
+  const [city, setCity] = useState("");
+const [state, setState] = useState("");
+  
 
   const [form, setForm] = useState({
     name: "",
@@ -31,35 +34,43 @@ export default function ShelterOfferForm() {
   };
 
 
-  const getCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      alert("Geolocation not supported");
-      return;
-    }
+const getCurrentLocation = () => {
+  if (!navigator.geolocation) {
+    alert("Geolocation not supported");
+    return;
+  }
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      try {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
 
         setLatitude(lat);
         setLongitude(lng);
 
-        const addr = await getAddressFromCoordinates(lat, lng);
-        setAddress(addr || "Unknown location");
+        const data = await getAddressFromCoordinates(lat, lng);
 
-        alert("Location captured: " + addr);
-      },
-      (error) => {
-        alert("Location failed: " + error.message);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
+        setAddress(data.address || "");
+        setCity(data.city || "");
+        setState(data.state || "");
+
+        alert("Location captured successfully!");
+      } catch (err) {
+        console.error(err);
+        alert("Failed to fetch location details");
       }
-    );
-  };
+    },
+    (error) => {
+      alert("Location failed: " + error.message);
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0,
+    }
+  );
+};
 
 
 
@@ -86,7 +97,8 @@ export default function ShelterOfferForm() {
           longitude,
 
           address,
-          
+          city,
+    state,
           is_sos: isSOS,
           status: "open",
           assigned_to: null,
@@ -181,12 +193,12 @@ export default function ShelterOfferForm() {
         onClick={getCurrentLocation}
         className="w-full bg-green-600 text-white py-3 rounded-xl"
       >
-        📍 Use My Current Location
+         Use My Current Location
       </button>
 
       {address && (
         <p className="text-green-600 text-sm">
-          ✅ {address}
+           {address}
         </p>
       )}
 

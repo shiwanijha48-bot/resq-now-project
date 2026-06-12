@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getAddressFromCoordinates } from "@/lib/geocode";
 
 export default function FoodRequestPage() {
   const [latitude, setLatitude] = useState<number | null>(null);
@@ -10,13 +11,17 @@ export default function FoodRequestPage() {
   const [isSOS, setIsSOS] = useState(false);
 
   const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    food_type: "",
-    quantity: "",
-    urgency: "high",
-    description: "",
-  });
+  name: "",
+  phone: "",
+  food_type: "",
+  quantity: "",
+  urgency: "high",
+  description: "",
+
+  address: "",
+  city: "",
+  state: "",
+});
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -41,18 +46,36 @@ export default function FoodRequestPage() {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        console.log("SUCCESS:", position);
+      async (position) => {
+  console.log("SUCCESS:", position);
 
-        setLatitude(position.coords.latitude);
-        setLongitude(position.coords.longitude);
+  const lat = position.coords.latitude;
+  const lng = position.coords.longitude;
 
-        alert(
-          "Location captured!\n" +
-          "Lat: " + position.coords.latitude + "\n" +
-          "Lng: " + position.coords.longitude
-        );
-      },
+  setLatitude(lat);
+  setLongitude(lng);
+
+  try {
+    const addressData = await getAddressFromCoordinates(lat, lng);
+
+    setForm((prev) => ({
+      ...prev,
+      address: addressData.address || "",
+      city: addressData.city || "",
+      state: addressData.state || "",
+    }));
+
+    console.log("Address:", addressData);
+  } catch (err) {
+    console.error("Address fetch failed:", err);
+  }
+
+  alert(
+    "Location captured!\n" +
+    "Lat: " + lat +
+    "\nLng: " + lng
+  );
+},
       (error) => {
         console.log("ERROR:", error);
 
@@ -105,6 +128,10 @@ export default function FoodRequestPage() {
               latitude,
               longitude,
 
+              address: form.address,
+city: form.city,
+state: form.state,
+
               is_sos: isSOS,
               status: "open",
               assigned_to: null,
@@ -135,13 +162,17 @@ ${form.description}
       );
 
       setForm({
-        name: "",
-        phone: "",
-        food_type: "",
-        quantity: "",
-        urgency: "high",
-        description: "",
-      });
+  name: "",
+  phone: "",
+  food_type: "",
+  quantity: "",
+  urgency: "high",
+  description: "",
+
+  address: "",
+  city: "",
+  state: "",
+});
 
       setIsSOS(false);
     } catch (error: any) {
@@ -227,7 +258,7 @@ ${form.description}
       <button
         type="button"
         onClick={getCurrentLocation}
-        className="w-full bg-blue-600 text-white p-3 rounded-xl"
+        className="w-full bg-green-600 text-white p-3 rounded-xl"
       >
          Use My Current Location
       </button>

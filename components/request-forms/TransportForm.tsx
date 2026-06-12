@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getAddressFromCoordinates } from "@/lib/geocode";
 
 export default function TransportForm() {
   const [latitude, setLatitude] = useState<number | null>(null);
@@ -18,6 +19,9 @@ export default function TransportForm() {
     vehicle_needed: "",
     urgency: "high",
     description: "",
+    address: "",
+  city: "",
+  state: "",
   });
 
   const handleChange = (
@@ -41,18 +45,40 @@ export default function TransportForm() {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        console.log("SUCCESS:", position);
+      async (position) => {
+  console.log("SUCCESS:", position);
 
-        setLatitude(position.coords.latitude);
-        setLongitude(position.coords.longitude);
+  const lat = position.coords.latitude;
+  const lng = position.coords.longitude;
 
-        alert(
-          "Location captured!\n" +
-          "Lat: " + position.coords.latitude + "\n" +
-          "Lng: " + position.coords.longitude
-        );
-      },
+  setLatitude(lat);
+  setLongitude(lng);
+
+  try {
+    const addressData =
+      await getAddressFromCoordinates(lat, lng);
+
+    setForm((prev) => ({
+      ...prev,
+      pickup_location:
+        addressData.address || prev.pickup_location,
+
+      address: addressData.address || "",
+      city: addressData.city || "",
+      state: addressData.state || "",
+    }));
+
+    console.log("Address:", addressData);
+  } catch (err) {
+    console.error("Address fetch failed:", err);
+  }
+
+  alert(
+    "Location captured!\n" +
+    "Lat: " + lat +
+    "\nLng: " + lng
+  );
+},
       (error) => {
         console.log("ERROR:", error);
 
@@ -79,7 +105,7 @@ export default function TransportForm() {
     try {
       if (
   pickupMode === "gps" &&
-  (!latitude || !longitude)
+  (latitude === null || longitude === null)
 ) {
   alert("Please capture GPS location first");
   return;
@@ -97,17 +123,33 @@ if (
 
       const { error } = await supabase.from("requests").insert([
         {
-          ...form,
-          category: "transport",
-          latitude:
-  pickupMode === "gps"
-    ? latitude
-    : null,
+  ...form,
+  category: "transport",
 
-longitude:
-  pickupMode === "gps"
-    ? longitude
-    : null,
+  latitude:
+    pickupMode === "gps"
+      ? latitude
+      : null,
+
+  longitude:
+    pickupMode === "gps"
+      ? longitude
+      : null,
+
+  address:
+    pickupMode === "gps"
+      ? form.address
+      : form.pickup_location,
+
+  city:
+    pickupMode === "gps"
+      ? form.city
+      : null,
+
+  state:
+    pickupMode === "gps"
+      ? form.state
+      : null,
           is_sos: isSOS,
           status: "open",
           assigned_to: null,
@@ -135,6 +177,9 @@ requester_email:
         vehicle_needed: "",
         urgency: "high",
         description: "",
+        address: "",
+  city: "",
+  state: "",
       });
 
       setIsSOS(false);
@@ -221,7 +266,7 @@ requester_email:
             <button
               type="button"
               onClick={getCurrentLocation}
-              className="w-full bg-green-600 text-white p-3 rounded-xl"
+              className="w-full bg-yellow-500 text-white p-3 rounded-xl"
             >
                GPS
             </button>

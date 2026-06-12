@@ -6,16 +6,36 @@ import { supabase } from "@/lib/supabase";
 type Request = {
   id: string;
   category: string;
-  description: string;
+
+  description?: string;
+
   status?: string;
   urgency?: string;
   is_sos?: boolean;
   created_at?: string;
-  // ✅ location fields
+
   address?: string;
   location?: string;
   city?: string;
   state?: string;
+
+  blood_group?: string;
+  units_required?: string;
+  hospital_name?: string;
+
+  food_type?: string;
+  quantity?: string;
+
+  medicine_type?: string;
+  medicine_name?: string;
+
+  people_count?: string;
+  women_count?: string;
+  children_count?: string;
+
+  pickup_location?: string;
+  destination?: string;
+  vehicle_needed?: string;
 };
 
 export default function MyRequests() {
@@ -151,6 +171,50 @@ export default function MyRequests() {
                         )}
                       </div>
                     )}
+
+{req.category === "medicine" && (
+  <div className="text-sm text-gray-600 mt-2 space-y-1">
+    {req.medicine_type && (
+      <p>Medicine Type: {req.medicine_type}</p>
+    )}
+
+    {req.medicine_name && (
+      <p>Medicine Name:{req.medicine_name}</p>
+    )}
+  </div>
+)}
+
+{req.category === "shelter" && (
+  <div className="text-sm text-gray-600 mt-2 space-y-1">
+    {req.people_count && (
+      <p>Total People: {req.people_count}</p>
+    )}
+
+    {req.women_count && (
+      <p>Women: {req.women_count}</p>
+    )}
+
+    {req.children_count && (
+      <p>Children:{req.children_count}</p>
+    )}
+  </div>
+)}
+
+{req.category === "transport" && (
+  <div className="text-sm text-gray-600 mt-2 space-y-1">
+    {req.pickup_location && (
+      <p>Pickup: {req.pickup_location}</p>
+    )}
+
+    {req.destination && (
+      <p>Destination: {req.destination}</p>
+    )}
+
+    {req.vehicle_needed && (
+      <p>Vehicle: {req.vehicle_needed}</p>
+    )}
+  </div>
+)}
 
                     {/* Description */}
                     <p className="text-gray-600 mt-1 whitespace-pre-line text-sm leading-relaxed">

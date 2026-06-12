@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getAddressFromCoordinates } from "@/lib/geocode";
 
 export default function ShelterForm() {
   const [latitude, setLatitude] = useState<number | null>(null);
@@ -17,6 +18,9 @@ export default function ShelterForm() {
     children_count: "",
     urgency: "",
     description: "",
+    address: "",
+  city: "",
+  state: "",
   });
 
   const handleChange = (
@@ -38,18 +42,37 @@ export default function ShelterForm() {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        console.log("SUCCESS:", position);
+      async (position) => {
+  console.log("SUCCESS:", position);
 
-        setLatitude(position.coords.latitude);
-        setLongitude(position.coords.longitude);
+  const lat = position.coords.latitude;
+  const lng = position.coords.longitude;
 
-        alert(
-          "Location captured!\n" +
-          "Lat: " + position.coords.latitude + "\n" +
-          "Lng: " + position.coords.longitude
-        );
-      },
+  setLatitude(lat);
+  setLongitude(lng);
+
+  try {
+    const addressData =
+      await getAddressFromCoordinates(lat, lng);
+
+    setForm((prev) => ({
+      ...prev,
+      address: addressData.address || "",
+      city: addressData.city || "",
+      state: addressData.state || "",
+    }));
+
+    console.log("Address:", addressData);
+  } catch (err) {
+    console.error("Address fetch failed:", err);
+  }
+
+  alert(
+    "Location captured!\n" +
+    "Lat: " + lat +
+    "\nLng: " + lng
+  );
+},
       (error) => {
         console.log("ERROR:", error);
 
@@ -94,6 +117,10 @@ export default function ShelterForm() {
               category: "shelter",
               latitude,
               longitude,
+              address: form.address,
+    city: form.city,
+    state: form.state,
+
               is_sos: isSOS,
               status: "open",
               assigned_to: null,
@@ -123,6 +150,9 @@ requester_email:
         children_count: "",
         urgency: "high",
         description: "",
+        address: "",
+  city: "",
+  state: "",
       });
 
       setIsSOS(false);
@@ -194,14 +224,14 @@ requester_email:
       <button
         type="button"
         onClick={getCurrentLocation}
-        className="w-full bg-blue-600 text-white p-3 rounded-xl"
+        className="w-full bg-purple-600 text-white p-3 rounded-xl"
       >
-        📍 Use My Current Location
+         Use My Current Location
       </button>
 
       {latitude && longitude && (
         <p className="text-green-600 text-sm">
-          ✅ Location captured successfully
+           Location captured successfully
         </p>
       )}
 
