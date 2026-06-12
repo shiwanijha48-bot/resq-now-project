@@ -1,46 +1,119 @@
-<div align="center">
-
 # 🚨 ResQ-Now — Emergency Resource Connect
 
-**A real-time, community-powered emergency resource sharing platform**  
-Connecting citizens, volunteers, NGOs, hospitals, and donors during emergencies for faster coordination and response.
+<div align="center">
 
-[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+### Connecting Communities During Emergencies, One Request at a Time.
+
+A real-time emergency resource sharing platform that enables citizens, volunteers, donors, and organizations to coordinate and respond quickly during crises.
 
 </div>
 
+---
+
+## 🌟 Overview
+
+**ResQ-Now** is a community-driven emergency response platform designed to bridge the gap between people in urgent need and those willing to help.
+
+During disasters and emergencies, finding blood donors, volunteers, food supplies, transport, medicine, or shelter becomes difficult. ResQ-Now provides a centralized platform where users can raise requests, volunteers can respond, and communities can coordinate efficiently.
 
 ---
 
-## 🌟 About
+## ✨ Key Features
 
-**ResQ-Now** is an emergency resource coordination platform built to save lives by bridging the gap between those in need and those who can help. During disasters and emergencies, every second counts — ResQ-Now enables real-time communication and resource sharing between citizens, volunteers, NGOs, hospitals, and donors.
+### 🆘 Emergency Request System
 
----
+Users can instantly create emergency requests for:
 
-## ✨ Features
-
-| Feature | Description |
-|---|---|
-| 📍 **Emergency Requests** | Real-time posting and tracking of emergency requests |
-| 🗺️ **Location-Based Tracking** | Map-integrated resource and volunteer tracking |
-| 🧑‍🤝‍🧑 **Volunteer & NGO Coordination** | Structured system for volunteers and organizations to coordinate |
-| 🩸 **Resource & Blood Requests** | Dedicated blood donation and resource request system |
-| 🔐 **Authentication** | Secure user authentication powered by Supabase Auth |
-| ⚡ **Real-Time Updates** | Live database synchronization using Supabase Realtime |
-| 📱 **Responsive UI** | Fast, mobile-friendly interface built with Next.js App Router |
+* 🩸 Blood
+* 💊 Medicine
+* 🍲 Food
+* 🏠 Shelter
+* 🚗 Transport
 
 ---
 
-## 🛠️ Tech Stack
+### 🤝 Volunteer Coordination
 
-| Layer | Technology |
-|---|---|
-| **Frontend** | Next.js 16 |
-| **Backend** | Supabase |
-| **Styling** | Tailwind CSS |
+* Volunteer registration and dashboard
+* View and manage active requests
+* Accept and assist emergency cases
+* Email notifications for coordination
+
+---
+
+### 📍 Location-Based Assistance
+
+* Browser geolocation support
+* Reverse geocoding for address detection
+* Map-based visualization of emergency requests
+
+---
+
+### 🔐 Secure Authentication
+
+Powered by Supabase Authentication:
+
+* User registration
+* Login and logout
+* Session management
+* Protected routes
+
+---
+
+### ⚡ Real-Time Updates
+
+Using Supabase Realtime:
+
+* Live synchronization of requests
+* Immediate visibility of new emergencies
+* Faster community response
+
+---
+
+### 📱 Responsive User Experience
+
+* Mobile-friendly design
+* Clean and intuitive interface
+* Optimized for both desktop and mobile devices
+
+---
+
+## 🛠 Tech Stack
+
+| Layer                | Technology                                  |
+| -------------------- | ------------------------------------------- |
+| Frontend             | Next.js (App Router)                        |
+| Language             | TypeScript & JavaScript                     |
+| UI Library           | React                                       |
+| Styling              | Tailwind CSS                                |
+| Backend-as-a-Service | Supabase                                    |
+| Database             | PostgreSQL                                  |
+| Authentication       | Supabase Auth                               |
+| Realtime             | Supabase Realtime                           |
+| APIs                 | Next.js Route Handlers                      |
+| Email Notifications  | Resend / Nodemailer                         |
+| Maps & Geolocation   | Browser Geolocation API + Reverse Geocoding |
+| Deployment           | Vercel                                      |
+
+---
+
+## 🏗 Architecture
+
+```
+Users
+   ↓
+Next.js + React Frontend
+   ↓
+Next.js API Routes
+   ↓
+Supabase
+├─ PostgreSQL Database
+├─ Authentication
+└─ Realtime Services
+   ↓
+Email Notifications
+(Resend / Nodemailer)
+```
 
 ---
 
@@ -48,111 +121,103 @@ Connecting citizens, volunteers, NGOs, hospitals, and donors during emergencies 
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) v18 or higher
-- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
-- A [Supabase](https://supabase.com/) account
+* Node.js (v18 or above)
+* npm or yarn
+* Supabase account
 
-### 1. Clone the Repository
+---
+
+### Clone the Repository
 
 ```bash
 git clone https://github.com/shiwanijha48-bot/ResQ-Now.git
 cd ResQ-Now
 ```
 
-### 2. Install Dependencies
+---
+
+### Install Dependencies
 
 ```bash
 npm install
-# or
-yarn install
 ```
 
-### 3. Setup Environment Variables
+---
 
-Create a `.env.local` file in the root directory and add your Supabase credentials:
+### Configure Environment Variables
+
+Create a `.env.local` file:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Email Service
+EMAIL_USER=your_email
+EMAIL_PASS=your_password
+# OR
+RESEND_API_KEY=your_resend_api_key
 ```
 
-> 🔒 **Never commit your `.env.local` file.** It is already listed in `.gitignore`.
+---
 
-### 4. Run the Development Server
+### Run the Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to view the app.
+Open:
+
+```
+http://localhost:3000
+```
 
 ---
 
-## 📁 Project Structure
+## 📂 Project Structure
 
 ```
 ResQ-Now/
-├── app/                # Pages and routes (Next.js App Router)
-├── components/         # Reusable UI components
-├── lib/                # Supabase client configuration
-├── public/             # Static assets (images, icons)
-├── .env.local          # Environment variables (not committed)
-├── tailwind.config.js  # Tailwind CSS configuration
-└── next.config.js      # Next.js configuration
+├── app/                  # App Router pages and API routes
+├── components/           # Reusable UI components
+├── lib/                  # Supabase, utilities, geocoding
+├── public/               # Static assets
+├── types/                # TypeScript definitions
+├── .env.local            # Environment variables
+├── tailwind.config.js
+├── next.config.js
+└── package.json
 ```
 
 ---
 
-## 🔥 Supabase Setup
+## 💡 Future Enhancements
 
-1. Go to [https://supabase.com](https://supabase.com) and sign in
-2. Click **New Project** and fill in the details
-3. Once the project is ready, go to **Project Settings → API**
-4. Copy the following values:
-   - **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
-   - **Anon / Public Key** → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-5. Paste them into your `.env.local` file
-
-> 💡 You may also need to create your database tables. Check the `/lib` folder for schema references.
+* 🤖 AI-powered emergency matching
+* 📲 SMS and WhatsApp notifications
+* 🛡️ Advanced admin dashboard
+* 📱 Dedicated mobile application
+* ✅ Verified volunteer badges
+* 🌐 Multi-language support
+* 📊 Analytics and response metrics
 
 ---
 
-## 📌 Future Improvements
+## 🎯 Impact
 
-1. 🤖 AI-based emergency matching system
-2. 📲 SMS / WhatsApp alert notifications
-3. 🛡️ Admin dashboard for monitoring requests
-4. 📱 Mobile app version (React Native)
-5. ✅ Verified volunteer badge system
-6. 🌍 Multi-language support
+ResQ-Now aims to reduce response delays during emergencies by enabling communities to collaborate efficiently through technology.
+
+Every emergency request represents a real person in need. By connecting helpers with those seeking assistance, ResQ-Now strives to create a faster, smarter, and more compassionate emergency response ecosystem.
 
 ---
 
-## 🤝 Contributing
-
-Contributions are welcome and appreciated! Here's how to get started:
-
-1. **Fork** the repository
-2. **Create** your feature branch: `git checkout -b feature/your-feature-name`
-3. **Commit** your changes: `git commit -m 'Add: your feature description'`
-4. **Push** to the branch: `git push origin feature/your-feature-name`
-5. **Open** a Pull Request
-
-> For major changes, please open an **Issue** first to discuss what you'd like to change.
+If you found this project useful, consider giving it a ⭐ on GitHub.
 
 ---
-
-
-## 💡 Author
 
 <div align="center">
 
-Built with ❤️ by **Shiwani Jha**
-
-[![GitHub](https://img.shields.io/badge/GitHub-shiwanijha48--bot-181717?style=for-the-badge&logo=github)](https://github.com/shiwanijha48-bot)
-
-*If you find this project helpful, please consider giving it a ⭐ on GitHub!*
+### Built with ❤️ to help communities respond when every second matters.
 
 </div>
