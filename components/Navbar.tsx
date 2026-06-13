@@ -70,7 +70,7 @@ export default function Navbar() {
           {user ? (
   <>
 
-   {user?.email === "sahyog.admin@gmail.com" && (
+   {user?.email === "admin@gmail.com" && (
   <Link
     href="/admin"
     className="text-sm text-gray-700 hover:text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg transition"
@@ -147,7 +147,7 @@ export default function Navbar() {
 
           {user ? (
             <>
-            {user.email === "sahyog.admin@gmail.com" && (
+            {user.email === "admin@gmail.com" && (
   <Link
     href="/admin"
     onClick={() => setMenuOpen(false)}

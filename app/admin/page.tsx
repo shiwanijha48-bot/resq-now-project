@@ -22,7 +22,7 @@ export default function AdminDashboard() {
         return;
       }
 
-      if (user.email !== "sahyog.admin@gmail.com") {
+      if (user.email !== "admin@gmail.com") {
         window.location.href = "/";
         return;
       }
