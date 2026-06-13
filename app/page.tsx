@@ -1,6 +1,49 @@
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
-export default function HomePage() {
+export default async function HomePage() {
+
+  // ── Active Requests: requests not yet resolved ──
+  const { count: activeRequestsCount } = await supabase
+    .from("requests")
+    .select("*", { count: "exact", head: true })
+    .is("resolved_at", null);
+
+    // ── Total Users: everyone registered on the platform ──
+  const { data: totalUsersCount } = await supabase.rpc("get_total_users");
+
+  // ── People Helped: requests resolved/completed ──
+  const { count: peopleHelpedCount } = await supabase
+    .from("requests")
+    .select("*", { count: "exact", head: true })
+    .not("resolved_at", "is", null);
+
+  // ── Cities Covered: distinct cities across requests + offers ──
+  const { data: requestCities } = await supabase
+    .from("requests")
+    .select("city")
+    .not("city", "is", null);
+
+  const { data: offerCities } = await supabase
+    .from("offers")
+    .select("city")
+    .not("city", "is", null);
+
+  const allCities = [
+    ...(requestCities?.map((r) => r.city) ?? []),
+    ...(offerCities?.map((o) => o.city) ?? []),
+  ];
+  const citiesCoveredCount = new Set(allCities.filter(Boolean)).size;
+
+  const stats = [
+    { value: activeRequestsCount ?? 0, label: "Active Requests", color: "text-red-600" },
+    { value: totalUsersCount ?? 0, label: "Total Users", color: "text-blue-600" },
+    { value: peopleHelpedCount ?? 0, label: "People Helped", color: "text-green-600" },
+    { value: citiesCoveredCount, label: "Cities Covered", color: "text-purple-600" },
+  ];
+
+  // ...
+
   const categories = [
     {
       emoji: "",
@@ -68,7 +111,6 @@ export default function HomePage() {
 
       {/* ── HERO ── */}
       <section className="relative overflow-hidden bg-white border-b">
-        {/* decorative bg circles */}
         <div className="absolute -top-32 -right-32 w-[500px] h-[500px] bg-red-50 rounded-full opacity-60 pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-[300px] h-[300px] bg-blue-50 rounded-full opacity-50 pointer-events-none" />
 
@@ -102,7 +144,6 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {/* Trust bar */}
           <p className="mt-8 text-sm text-gray-400">
             Trusted by volunteers across India &nbsp;·&nbsp; Free &nbsp;·&nbsp; No registration required to request help
           </p>
@@ -112,12 +153,7 @@ export default function HomePage() {
       {/* ── LIVE STATS ── */}
       <section className="max-w-7xl mx-auto px-6 py-14">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { value: "150+", label: "Active Requests", color: "text-red-600" },
-            { value: "58+", label: "Volunteers Online", color: "text-blue-600" },
-            { value: "550+", label: "People Helped", color: "text-green-600" },
-            { value: "190+", label: "Cities Covered", color: "text-purple-600" },
-          ].map((stat) => (
+          {stats.map((stat) => (
             <div
               key={stat.label}
               className="bg-white border border-gray-100 rounded-2xl p-6 text-center shadow-sm"
@@ -133,7 +169,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── QUICK LINKS (replaces hidden nav items) ── */}
+      {/* ── QUICK LINKS ── */}
       <section className="max-w-7xl mx-auto px-6 pb-14">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900">
