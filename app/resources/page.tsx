@@ -1,181 +1,334 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-type Offer = {
-  id: string;
-  name: string;
-  phone: string;
-  category: string;
-  address: string;
-  description: string;
-  availability: string;
-  created_at: string;
-};
-
-export default function OffersPage() {
-  const [offers, setOffers] = useState<Offer[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
+export default function HomePage() {
+  const [stats, setStats] = useState({
+    activeRequests: 0,
+    volunteersOnline: 0,
+    peopleHelped: 0,
+    citiesCovered: 0,
+  });
 
   useEffect(() => {
-    fetchOffers();
+    async function fetchStats() {
+      // Active (open) requests
+      const { count: activeRequests } = await supabase
+        .from("requests")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "open");
 
-    const channel = supabase
-      .channel("offers-live")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "offers",
-        },
-        () => {
-          fetchOffers();
-        }
-      )
-      .subscribe();
+      // Volunteers = users who have accepted at least one request
+      const { data: volunteerData } = await supabase
+        .from("requests")
+        .select("assigned_to")
+        .not("assigned_to", "is", null);
+      const uniqueVolunteers = new Set(
+        (volunteerData || []).map((r: any) => r.assigned_to)
+      );
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      // People helped = resolved/completed requests
+      const { count: peopleHelped } = await supabase
+        .from("requests")
+        .select("*", { count: "exact", head: true })
+        .in("status", ["resolved", "completed"]);
+
+      // Cities covered = distinct cities in requests table
+      const { data: cityData } = await supabase
+        .from("requests")
+        .select("city")
+        .not("city", "is", null);
+      const uniqueCities = new Set(
+        (cityData || []).map((r: any) => r.city).filter(Boolean)
+      );
+
+      setStats({
+        activeRequests: activeRequests || 0,
+        volunteersOnline: uniqueVolunteers.size,
+        peopleHelped: peopleHelped || 0,
+        citiesCovered: uniqueCities.size,
+      });
+    }
+
+    fetchStats();
   }, []);
 
-  const fetchOffers = async () => {
-  try {
-    setLoading(true);
+  const categories = [
+    {
+      emoji: "",
+      title: "Blood Donation",
+      description: "Find blood donors quickly during emergencies.",
+      link: "/requests?category=blood",
+      color: "bg-red-50 border-red-100 hover:border-red-300",
+      badge: "bg-red-100 text-red-700",
+    },
+    {
+      emoji: "",
+      title: "Medicines",
+      description: "Request or provide urgent medicines.",
+      link: "/requests?category=medicine",
+      color: "bg-blue-50 border-blue-100 hover:border-blue-300",
+      badge: "bg-blue-100 text-blue-700",
+    },
+    {
+      emoji: "",
+      title: "Transport",
+      description: "Emergency transport and ambulance support.",
+      link: "/requests?category=transport",
+      color: "bg-yellow-50 border-yellow-100 hover:border-yellow-300",
+      badge: "bg-yellow-100 text-yellow-700",
+    },
+    {
+      emoji: "",
+      title: "Food Support",
+      description: "Food assistance during disasters and crises.",
+      link: "/requests?category=food",
+      color: "bg-orange-50 border-orange-100 hover:border-orange-300",
+      badge: "bg-orange-100 text-orange-700",
+    },
+    {
+      emoji: "",
+      title: "Shelter",
+      description: "Temporary accommodation and safe shelters.",
+      link: "/requests?category=shelter",
+      color: "bg-green-50 border-green-100 hover:border-green-300",
+      badge: "bg-green-100 text-green-700",
+    },
+    {
+      emoji: "",
+      title: "Volunteers",
+      description: "Connect with people ready to help right now.",
+      link: "/requests",
+      color: "bg-purple-50 border-purple-100 hover:border-purple-300",
+      badge: "bg-purple-100 text-purple-700",
+    },
+  ];
 
-    const { data, error } = await supabase
-      .from("offers")
-      .select("*")
-      .order("created_at", { ascending: false });
+  const quickLinks = [
+    { href: "/request", emoji: "", label: "Request Help", desc: "Submit an emergency request" },
+    { href: "/offer", emoji: "", label: "Offer Help", desc: "Register as a resource provider" },
+    { href: "/requests", emoji: "", label: "Emergency Requests", desc: "See all open requests" },
+    { href: "/resources", emoji: "", label: "Available Resources", desc: "Guides & emergency info" },
+    { href: "/directory", emoji: "", label: "Emergency Contacts", desc: "Hospitals, helplines & more" },
+    { href: "/volunteer", emoji: "", label: "Become a Volunteer", desc: "Join our responder network" },
+    { href: "/my-requests", emoji: "", label: "My Requests", desc: "Track your submitted requests" },
+    { href: "/dashboard", emoji: "", label: "Dashboard", desc: "Your activity & stats" },
+  ];
 
-    console.log("DATA:", data);
-    console.log("ERROR:", error);
-
-    if (error) throw error;
-
-    setOffers(data || []);
-  } catch (err) {
-    console.error("Fetch error:", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
-  const filteredOffers =
-    filter === "all"
-      ? offers
-      : offers.filter(
-          (offer) => offer.category === filter
-        );
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <h1 className="text-2xl font-bold">
-          Loading Resources...
-        </h1>
-      </div>
-    );
-  }
+  const liveStats = [
+    { value: stats.activeRequests, label: "Active Requests", color: "text-red-600" },
+    { value: stats.volunteersOnline, label: "Volunteers Active", color: "text-blue-600" },
+    { value: stats.peopleHelped, label: "People Helped", color: "text-green-600" },
+    { value: stats.citiesCovered, label: "Cities Covered", color: "text-purple-600" },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50 min-h-screen">
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      {/* ── HERO ── */}
+      <section className="relative overflow-hidden bg-white border-b">
+        <div className="absolute -top-32 -right-32 w-[500px] h-[500px] bg-red-50 rounded-full opacity-60 pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 w-[300px] h-[300px] bg-blue-50 rounded-full opacity-50 pointer-events-none" />
 
-        <h1 className="text-4xl font-bold mb-2">
-           Available Resources
-        </h1>
+        <div className="relative max-w-7xl mx-auto px-6 py-24 md:py-32 text-center">
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-red-100 text-red-700 rounded-full text-sm font-semibold tracking-wide mb-6">
+            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+            Live Emergency Response Platform
+          </span>
 
-        <p className="text-gray-600 mb-8">
-          People offering help during emergencies.
-        </p>
+          <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 leading-tight tracking-tight">
+            Help Reaches You
+            <br />
+            <span className="text-red-600">Faster.</span>
+          </h1>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-3 mb-8">
+          <p className="mt-6 text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
+            ResQNow connects people in crisis with blood donors, medicine,
+            food, transport, shelter, and volunteers — in real time.
+          </p>
 
-          {[
-            "all",
-            "blood",
-            "food",
-            "medicine",
-            "transport",
-            "shelter",
-          ].map((item) => (
-            <button
-              key={item}
-              onClick={() => setFilter(item)}
-              className={`px-4 py-2 rounded-xl capitalize ${
-                filter === item
-                  ? "bg-green-600 text-white"
-                  : "bg-white border"
-              }`}
+          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/request">
+              <button className="px-8 py-4 bg-red-600 text-white rounded-2xl font-bold text-lg hover:bg-red-700 transition shadow-lg shadow-red-200">
+                 Request Emergency Help
+              </button>
+            </Link>
+            <Link href="/offer">
+              <button className="px-8 py-4 bg-white border-2 border-gray-200 text-gray-800 rounded-2xl font-bold text-lg hover:border-red-300 hover:bg-red-50 transition">
+                 Offer Your Help
+              </button>
+            </Link>
+          </div>
+
+          <p className="mt-8 text-sm text-gray-400">
+            Trusted by volunteers across India &nbsp;·&nbsp; Free &nbsp;·&nbsp; No registration required to request help
+          </p>
+        </div>
+      </section>
+
+      {/* ── LIVE STATS (real data from Supabase) ── */}
+      <section className="max-w-7xl mx-auto px-6 py-14">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <span className="text-xs text-gray-400 font-medium uppercase tracking-wide">Live platform data</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {liveStats.map((stat) => (
+            <div
+              key={stat.label}
+              className="bg-white border border-gray-100 rounded-2xl p-6 text-center shadow-sm"
             >
-              {item}
-            </button>
+              <p className={`text-4xl font-extrabold ${stat.color}`}>
+                {stat.value}
+              </p>
+              <p className="mt-1 text-gray-500 text-sm font-medium">
+                {stat.label}
+              </p>
+            </div>
           ))}
+        </div>
+      </section>
 
+      {/* ── QUICK LINKS ── */}
+      <section className="max-w-7xl mx-auto px-6 pb-14">
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900">What do you need?</h2>
+          <p className="text-gray-500 mt-1">Jump directly to the right place.</p>
         </div>
 
-        {filteredOffers.length === 0 ? (
-          <div className="bg-white rounded-2xl p-10 text-center shadow">
-            No resources available.
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {quickLinks.map((item) => (
+            <Link key={item.href} href={item.href}>
+              <div className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-red-200 hover:shadow-md transition cursor-pointer h-full group">
+                <div className="text-3xl mb-3">{item.emoji}</div>
+                <h3 className="font-bold text-gray-800 group-hover:text-red-600 transition text-sm">
+                  {item.label}
+                </h3>
+                <p className="mt-1 text-gray-400 text-xs leading-snug">{item.desc}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
 
-            {filteredOffers.map((offer) => (
-              <div
-                key={offer.id}
-                className="bg-white rounded-2xl shadow p-6 border hover:shadow-lg transition"
-              >
+      {/* ── CATEGORIES ── */}
+      <section className="max-w-7xl mx-auto px-6 pb-14">
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900">Emergency Resource Categories</h2>
+          <p className="text-gray-500 mt-1">Find or provide help by type of need.</p>
+        </div>
 
-                <div className="flex justify-between mb-4">
-
-                  <h2 className="font-bold text-xl uppercase">
-                    {offer.category}
-                  </h2>
-
-                  <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
-                    Available
+        <div className="grid md:grid-cols-3 gap-5">
+          {categories.map((item) => (
+            <Link key={item.title} href={item.link}>
+              <div className={`border rounded-2xl p-6 transition cursor-pointer h-full ${item.color}`}>
+                <div className="flex items-start justify-between mb-4">
+                  <span className="text-4xl">{item.emoji}</span>
+                  <span className={`text-xs font-semibold px-2 py-1 rounded-full ${item.badge}`}>
+                    Browse →
                   </span>
-
                 </div>
+                <h3 className="font-bold text-gray-900 text-lg">{item.title}</h3>
+                <p className="mt-2 text-gray-600 text-sm leading-relaxed">{item.description}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
 
-                <p>
-                  <strong></strong> {offer.name}
-                </p>
+      {/* ── SOS BANNER ── */}
+      <section className="max-w-7xl mx-auto px-6 pb-14">
+        <div className="bg-red-600 rounded-3xl text-white px-10 py-14 text-center relative overflow-hidden">
+          <div className="absolute -top-10 -right-10 w-48 h-48 bg-red-500 rounded-full opacity-40" />
+          <div className="absolute -bottom-8 -left-8 w-36 h-36 bg-red-700 rounded-full opacity-30" />
+          <div className="relative">
+            <span className="inline-block bg-white/20 text-white text-sm font-semibold px-4 py-1.5 rounded-full mb-5">
+              Life-threatening situation?
+            </span>
+            <h2 className="text-4xl md:text-5xl font-extrabold"> Trigger SOS Alert</h2>
+            <p className="mt-4 text-red-100 max-w-xl mx-auto text-lg">
+              Send a high-priority SOS that instantly notifies all available volunteers near you via email.
+            </p>
+            <Link href="/request">
+              <button className="mt-8 px-10 py-4 bg-white text-red-600 font-extrabold rounded-2xl text-lg hover:bg-red-50 transition shadow-xl">
+                Send SOS Now
+              </button>
+            </Link>
+          </div>
+        </div>
+      </section>
 
-                <p>
-                  <strong></strong> {offer.phone}
-                </p>
+      {/* ── HOW IT WORKS ── */}
+      <section className="bg-white border-t py-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl font-extrabold text-gray-900">How ResQNow Works</h2>
+            <p className="text-gray-500 mt-2">Four steps between a crisis and help arriving.</p>
+          </div>
 
-                <p>
-                  <strong></strong> {offer.address}
-                </p>
-
-
-                <div className="mt-4">
-                  <p>{offer.description}</p>
+          <div className="grid md:grid-cols-4 gap-10">
+            {[
+              {
+                step: "01",
+                icon: "",
+                title: "Submit a Request",
+                desc: "Fill out a simple form with your location, category, and urgency. No account needed.",
+              },
+              {
+                step: "02",
+                icon: "",
+                title: "Volunteers Notified",
+                desc: "Registered volunteers see the request instantly. SOS requests are prioritised at the top.",
+              },
+              {
+                step: "03",
+                icon: "",
+                title: "You Approve",
+                desc: "You receive an email with the volunteer's name and phone. You choose whether to accept their help.",
+              },
+              {
+                step: "04",
+                icon: "",
+                title: "Help Arrives",
+                desc: "The volunteer you approved coordinates directly with you to resolve the emergency.",
+              },
+            ].map((item) => (
+              <div key={item.step} className="relative text-center">
+                <span className="text-7xl font-black text-gray-50 absolute -top-4 left-1/2 -translate-x-1/2 select-none pointer-events-none">
+                  {item.step}
+                </span>
+                <div className="relative">
+                  <div className="text-5xl mb-4">{item.icon}</div>
+                  <h3 className="font-bold text-lg text-gray-900">{item.title}</h3>
+                  <p className="text-gray-500 mt-2 text-sm leading-relaxed max-w-xs mx-auto">{item.desc}</p>
                 </div>
-
-                <a
-                  href={`tel:${offer.phone}`}
-                  className="block text-center mt-5 bg-green-600 text-white py-3 rounded-xl font-semibold"
-                >
-                  Contact Provider
-                </a>
-
               </div>
             ))}
-
           </div>
-        )}
+        </div>
+      </section>
 
-      </div>
+      {/* ── FOOTER CTA ── */}
+      <section className="bg-gray-900 py-16 text-center">
+        <h2 className="text-3xl font-extrabold text-white">Ready to make a difference?</h2>
+        <p className="text-gray-400 mt-3 max-w-md mx-auto">
+          Join volunteers already helping people across India.
+        </p>
+        <div className="mt-8 flex gap-4 justify-center flex-wrap">
+          <Link href="/signup">
+            <button className="px-8 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition">
+              Join as Volunteer
+            </button>
+          </Link>
+          <Link href="/requests">
+            <button className="px-8 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition border border-white/20">
+              Browse Open Requests
+            </button>
+          </Link>
+        </div>
+      </section>
 
     </div>
   );
