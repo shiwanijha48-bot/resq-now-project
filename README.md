@@ -10,7 +10,7 @@ A real-time emergency resource sharing platform that enables citizens, volunteer
 
 ---
 
-## 🌟 Overview
+##  Overview
 
 **ResQ-Now** is a community-driven emergency response platform designed to bridge the gap between people in urgent need and those willing to help.
 
