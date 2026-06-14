@@ -1,11 +1,15 @@
-import BloodDonorForm from "@/components/BloodDonorForm";
-import DonorList from "@/components/DonorList";
+"use client";
 
-export default function DonorsPage() {
+export default function BloodDonorForm() {
   return (
-    <div className="max-w-6xl mx-auto p-10">
-      <BloodDonorForm />
-      <DonorList />
+    <div className="bg-white p-6 rounded-lg shadow mb-6">
+      <h2 className="text-2xl font-bold mb-2">
+        Blood Donor Registration
+      </h2>
+
+      <p className="text-gray-600">
+        Blood donor form is under development and will be available soon.
+      </p>
     </div>
   );
 }

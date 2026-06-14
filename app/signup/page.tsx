@@ -1,5 +1,5 @@
 "use client";
-
+import type { FormEvent } from "react";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -13,7 +13,9 @@ export default function Signup() {
   const [phone, setPhone] = useState("");
   const [role, setRole] = useState("user");
 
-  const handleSignup = async (e) => {
+  const handleSignup = async (
+  e: React.FormEvent<HTMLFormElement>
+) => {
     e.preventDefault();
 
     // 1. Create auth user
